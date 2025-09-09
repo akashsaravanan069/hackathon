@@ -1,0 +1,48 @@
+import fitz  # PyMuPDF
+import openai
+
+# Set your OpenAI API key
+openai.api_key = "YOUR_OPENAI_API_KEY"
+
+def extract_text_from_pdf(pdf_path):
+    doc = fitz.open(pdf_path)
+    text = ""
+    for page in doc:
+        text += page.get_text()
+    return text
+
+def ask_question(pdf_text, question):
+    prompt = f"""
+You are a helpful assistant. Use the following document to answer the question:
+Document:
+\"\"\"
+{pdf_text}
+\"\"\"
+Question: {question}
+Answer:"""
+
+    response = openai.Completion.create(
+        engine="text-davinci-003",  # or "gpt-3.5-turbo" for chat-based (requires a different call)
+        prompt=prompt,
+        max_tokens=200,
+        temperature=0,
+        n=1,
+        stop=None,
+    )
+    answer = response.choices[0].text.strip()
+    return answer
+
+def main():
+    pdf_path = input("Enter path to your PDF file: ")
+    print("Extracting text from PDF...")
+    pdf_text = extract_text_from_pdf(pdf_path)
+    print("You can now ask questions about the PDF.")
+    while True:
+        question = input("\nYour question (or 'exit' to quit): ")
+        if question.lower() == 'exit':
+            break
+        answer = ask_question(pdf_text, question)
+        print(f"Answer: {answer}")
+
+if __name__ == "__main__":
+    main()
